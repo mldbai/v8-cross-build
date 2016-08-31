@@ -9,12 +9,14 @@ will become unnecessary.
 
 ## Building
 
+```bash
 git submodule sync
 git submodule update --init
 sudo apt-get add-architecture arm64
 sudo apt-get add-architecture arm
 sudo apt-get update
 make
+```
 
 ## Behind the scenes
 
