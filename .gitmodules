@@ -1,0 +1,9 @@
+[submodule "depot_tools"]
+	path = depot_tools
+	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
+[submodule "v8"]
+	path = v8
+	url = https://github.com/mldbai/v8.git
+[submodule "out"]
+	path = out
+	url = git@github.com:mldbai/v8-cross-build-output.git
