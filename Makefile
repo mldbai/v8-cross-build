@@ -56,7 +56,7 @@ osdeps/$(1)/tmp/sysroot:
 	mkdir -p $(dir $$@) && touch $$@
 
 v8/out/$(1)/libv8.so: $$(PORT_DEPS_$(1)) | osdeps/$(1)/tmp/sysroot
-	cd v8 && PATH=$(PWD)/depot_tools:$(PATH) ../depot_tools/gn gen out/$(1) --args='is_debug=false target_cpu="$(1)" v8_target_cpu="$(1)" is_component_build=true cc_wrapper="ccache" icu_use_system=true icu_include_dir="$(PWD)/osdeps/$(1)/usr/include/$$(ARCH3_$(1))" icu_lib_dir="$(PWD)/osdeps/$(1)/usr/lib/$$(ARCH3_$(1))" v8_enable_gdbjit=true v8_enable_disassembler=true v8_enable_backtrace=true $(if $(findstring,x64,$(1)),linux_use_bundled_binutils=false use_sysroot=false)'
+	cd v8 && PATH=$(PWD)/depot_tools:$(PATH) ../depot_tools/gn gen out/$(1) --args='is_debug=false target_cpu="$(1)" v8_target_cpu="$(1)" is_component_build=true cc_wrapper="ccache" icu_use_system=true icu_include_dir="$(PWD)/osdeps/$(1)/usr/include/$$(ARCH3_$(1))" icu_lib_dir="$(PWD)/osdeps/$(1)/usr/lib/$$(ARCH3_$(1))" v8_enable_gdbjit=true v8_enable_disassembler=true $$(if $$(findstring x64,$(1)),linux_use_bundled_binutils=false use_sysroot=false)'
 	PATH=$(PWD)/depot_tools:$(PATH) nice ninja -C v8/out/$(1)
 
 v8/out/$(1)/snapshot_blob.bin v8/out/$(1)/natives_blob.bin: | v8/out/$(1)/libv8.so
