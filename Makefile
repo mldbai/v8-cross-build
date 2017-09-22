@@ -39,7 +39,7 @@ setup: 	| v8/third_party/icu v8/third_party/icu/ispatched
 
 all: setup
 
-PORT_DEV_PACKAGES:=libicu52 libicu-dev
+PORT_DEV_PACKAGES:=libicu55 libicu-dev
 
 define build_v8_on_arch
 
