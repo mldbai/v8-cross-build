@@ -1,3 +1,7 @@
+include /etc/lsb-release
+
+$(warning building for distribution $(DISTRIB_ID) $(DISTRIB_CODENAME) ($(DISTRIB_RELEASE)))
+
 ARCHS?=x64 arm64 arm
 
 # Ubuntu names for arches
@@ -6,7 +10,7 @@ ARCH2_x32:=x86
 ARCH2_arm64:=aarch64
 ARCH2_arm:=armhf
 
-# GCC host triple names for raches
+# GCC host triple names for araches
 ARCH3_x64:=x86_64-linux-gnu
 ARCH3_x32:=x86-linux-gnu
 ARCH3_arm64:=aarch64-linux-gnu
@@ -19,6 +23,13 @@ ARCH4_arm64:=arm64
 ARCH4_arm:=arm
 
 PWD:=$(shell pwd)
+
+icu_version_trusty:=52
+icu_version_xenial:=55
+
+ICU_VERSION:=$(icu_version_$(DISTRIB_CODENAME))
+
+$(if $(ICU_VERSION),,$(error no ICU version set for distribution $(DISTRIB_CODENAME) or no /etc/lsb-release file found)) 
 
 default: all
 
@@ -39,7 +50,7 @@ setup: 	| v8/third_party/icu v8/third_party/icu/ispatched
 
 all: setup
 
-PORT_DEV_PACKAGES:=libicu55 libicu-dev
+PORT_DEV_PACKAGES:=libicu$(ICU_VERSION) libicu-dev
 
 define build_v8_on_arch
 
@@ -58,26 +69,26 @@ osdeps/$(1)/tmp/sysroot:
 # enable_profiling=true is necessary for anything that links with tcmalloc,
 # which will attempt to trace stacks back through v8 when a C++ callback
 # is called from JS.  Otherwise the stack traces will cause a segfault.
-v8/out/$(1)/libv8.so: $$(PORT_DEPS_$(1)) | osdeps/$(1)/tmp/sysroot
-	cd v8 && PATH=$(PWD)/depot_tools:$(PATH) ../depot_tools/gn gen out/$(1) --args='is_debug=false target_cpu="$(1)" v8_target_cpu="$(1)" is_component_build=true cc_wrapper="ccache" icu_use_system=true icu_include_dir="$(PWD)/osdeps/$(1)/usr/include/$$(ARCH3_$(1))" icu_lib_dir="$(PWD)/osdeps/$(1)/usr/lib/$$(ARCH3_$(1))" v8_enable_gdbjit=true v8_enable_disassembler=true enable_profiling=true $$(if $$(findstring x64,$(1)),linux_use_bundled_binutils=false use_sysroot=false custom_toolchain="//build/toolchain/linux:x64" is_clang=false clang_use_chrome_plugins=false)'
-	PATH=$(PWD)/depot_tools:$(PATH) nice ninja -C v8/out/$(1)
+v8/out/$(DISTRIB_CODENAME)/$(1)/libv8.so: $$(PORT_DEPS_$(1)) | osdeps/$(1)/tmp/sysroot
+	cd v8 && PATH=$(PWD)/depot_tools:$(PATH) ../depot_tools/gn gen out/$(DISTRIB_CODENAME)/$(1) --args='is_debug=false target_cpu="$(1)" v8_target_cpu="$(1)" is_component_build=true cc_wrapper="ccache" icu_use_system=true icu_include_dir="$(PWD)/osdeps/$(1)/usr/include/$$(ARCH3_$(1))" icu_lib_dir="$(PWD)/osdeps/$(1)/usr/lib/$$(ARCH3_$(1))" v8_enable_gdbjit=true v8_enable_disassembler=true enable_profiling=true $$(if $$(findstring x64,$(1)),linux_use_bundled_binutils=false use_sysroot=false custom_toolchain="//build/toolchain/linux:x64" is_clang=false clang_use_chrome_plugins=false)'
+	PATH=$(PWD)/depot_tools:$(PATH) nice ninja -C v8/out/$(DISTRIB_CODENAME)/$(1)
 
-v8/out/$(1)/snapshot_blob.bin v8/out/$(1)/natives_blob.bin: | v8/out/$(1)/libv8.so
+v8/out/$(DISTRIB_CODENAME)/$(1)/snapshot_blob.bin v8/out/$(1)/natives_blob.bin: | v8/out/$(DISTRIB_CODENAME)/$(1)/libv8.so
 
-out/$(1)/libv8.so:	v8/out/$(1)/libv8.so
+out/$(DISTRIB_CODENAME)/$(1)/libv8.so:	v8/out/$(DISTRIB_CODENAME)/$(1)/libv8.so
 	mkdir -p $$(dir $$@)
 	cp $$< $$@~ && mv $$@~ $$@
 
-out/$(1)/snapshot_blob.bin:	v8/out/$(1)/snapshot_blob.bin
+out/$(DISTRIB_CODENAME)/$(1)/snapshot_blob.bin:	v8/out/$(DISTRIB_CODENAME)/$(1)/snapshot_blob.bin
 	mkdir -p $$(dir $$@)
 	cp $$< $$@~ && mv $$@~ $$@
 
-out/$(1)/natives_blob.bin:	v8/out/$(1)/natives_blob.bin
+out/$(DISTRIB_CODENAME)/$(1)/natives_blob.bin:	v8/out/$(DISTRIB_CODENAME)/$(1)/natives_blob.bin
 	mkdir -p $$(dir $$@)
 	cp $$< $$@~ && mv $$@~ $$@
 
 
-all: out/$(1)/libv8.so out/$(1)/snapshot_blob.bin out/$(1)/natives_blob.bin
+all: out/$(DISTRIB_CODENAME)/$(1)/libv8.so out/$(DISTRIB_CODENAME)/$(1)/snapshot_blob.bin out/$(DISTRIB_CODENAME)/$(1)/natives_blob.bin
 
 endef
 

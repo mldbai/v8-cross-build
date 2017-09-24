@@ -12,8 +12,8 @@ will become unnecessary.
 ```bash
 git submodule sync
 git submodule update --init
-sudo apt-get add-architecture arm64
-sudo apt-get add-architecture arm
+sudo dpkg --add-architecture arm64
+sudo dpkg --add-architecture arm
 sudo apt-get update
 make
 ```
