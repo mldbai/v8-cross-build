@@ -10,6 +10,7 @@ will become unnecessary.
 ## Building
 
 ```bash
+sudo apt-get install curl
 git submodule sync
 git submodule update --init
 sudo dpkg --add-architecture arm64
