@@ -1,0 +1,80 @@
+diff --git a/src/objects-body-descriptors.h b/src/objects-body-descriptors.h
+index 91cb8883be..a1c3634bd7 100644
+--- a/src/objects-body-descriptors.h
++++ b/src/objects-body-descriptors.h
+@@ -99,7 +99,7 @@ class FixedBodyDescriptor final : public BodyDescriptorBase {
+ 
+   template <typename StaticVisitor>
+   static inline void IterateBody(HeapObject* obj, int object_size) {
+-    IterateBody(obj);
++    IterateBody<StaticVisitor>(obj);
+   }
+ };
+ 
+diff --git a/src/objects.cc b/src/objects.cc
+index fce862b257..e3e19a6eca 100644
+--- a/src/objects.cc
++++ b/src/objects.cc
+@@ -61,6 +61,7 @@
+ #include "src/utils.h"
+ #include "src/wasm/wasm-module.h"
+ #include "src/zone.h"
++#include "src/heap/heap.h"
+ 
+ #ifdef ENABLE_DISASSEMBLER
+ #include "src/disasm.h"
+@@ -2588,6 +2589,11 @@ void JSObject::PrintInstanceMigration(FILE* file,
+   PrintF(file, "\n");
+ }
+ 
++uint32_t HeapObject::GetHashSeed() const
++{
++    return GetHeap()->HashSeed();
++}
++
+ 
+ void HeapObject::HeapObjectShortPrint(std::ostream& os) {  // NOLINT
+   Heap* heap = GetHeap();
+diff --git a/src/objects.h b/src/objects.h
+index ba7f0cc9e3..e13beba6a7 100644
+--- a/src/objects.h
++++ b/src/objects.h
+@@ -1586,6 +1586,8 @@ class HeapObject: public Object {
+   // The Heap the object was allocated in. Used also to access Isolate.
+   inline Heap* GetHeap() const;
+ 
++  uint32_t GetHashSeed() const;
++  
+   // Convenience method to get current isolate.
+   inline Isolate* GetIsolate() const;
+ 
+@@ -3341,7 +3343,7 @@ class HashTable : public HashTableBase {
+   // Wrapper methods
+   inline uint32_t Hash(Key key) {
+     if (Shape::UsesSeed) {
+-      return Shape::SeededHash(key, GetHeap()->HashSeed());
++      return Shape::SeededHash(key, GetHashSeed());
+     } else {
+       return Shape::Hash(key);
+     }
+@@ -3349,7 +3351,7 @@ class HashTable : public HashTableBase {
+ 
+   inline uint32_t HashForObject(Key key, Object* object) {
+     if (Shape::UsesSeed) {
+-      return Shape::SeededHashForObject(key, GetHeap()->HashSeed(), object);
++      return Shape::SeededHashForObject(key, GetHashSeed(), object);
+     } else {
+       return Shape::HashForObject(key, object);
+     }
+diff --git a/src/runtime/runtime-i18n.cc b/src/runtime/runtime-i18n.cc
+index 8b9d92ec00..ee0a7cad5c 100644
+--- a/src/runtime/runtime-i18n.cc
++++ b/src/runtime/runtime-i18n.cc
+@@ -40,6 +40,7 @@
+ #include "unicode/unistr.h"
+ #include "unicode/unum.h"
+ #include "unicode/uversion.h"
++#include "unicode/ustring.h"
+ 
+ 
+ namespace v8 {
